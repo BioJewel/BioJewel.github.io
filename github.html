@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>github</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="github_files/libs/clipboard/clipboard.min.js"></script>
+<script src="github_files/libs/quarto-html/quarto.js"></script>
+<script src="github_files/libs/quarto-html/popper.min.js"></script>
+<script src="github_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="github_files/libs/quarto-html/anchor.min.js"></script>
+<link href="github_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="github_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="github_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="github_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="github_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">github</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p><strong>散点图可以直观反映数据的分布，箱线图可以展示均值等关键统计量，二者结合能够清晰呈现数据蕴含的信息。</strong></p>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/b286b7dd-f393-4ca8-8455-bb55dac52e46.png" class="img-fluid"></p>
+<p>本篇笔记主要内容：介绍R语言中绘制箱线图和散点图的方法，以及二者结合展示教程，添加差异比较显著性分析，绘制如上结果图。</p>
+<hr>
+<section id="加载r包与数据" class="level2">
+<h2 class="anchored" data-anchor-id="加载r包与数据">加载R包与数据</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr) </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork) </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggsci)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用R语言自带的iris数据集，并随机分成两组</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> iris</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Group <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Group[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(data),<span class="at">size =</span> (<span class="fu">nrow</span>(data)<span class="sc">/</span><span class="dv">2</span>))] <span class="ot">&lt;-</span> <span class="st">"A"</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>Group[<span class="fu">is.na</span>(data<span class="sc">$</span>Group)] <span class="ot">&lt;-</span> <span class="st">"B"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/2743ad3d-33cd-41c4-9357-3bffd3274858.png" class="img-fluid"> 在实际数据可视化过程中，输入数据格式也和上面类似，至少有两列，其中一列是分类，另一列是数值。</p>
+</section>
+<section id="绘制箱线图" class="level2">
+<h2 class="anchored" data-anchor-id="绘制箱线图">绘制箱线图</h2>
+<pre><code>ggplot(data,aes(x = Species,y = Sepal.Width)) +
+    geom_boxplot(aes(fill = Species),alpha = 0.7)</code></pre>
+<p>这里将<code>Species</code>设置为x轴，<code>Sepal.Width</code>设置为y轴，箱子内部填充颜色与<code>Species</code>映射。 <img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/75a62799-46c5-4056-a759-5f48c5af8347.png" class="img-fluid"></p>
+<p>这段代码的作用是创建一个箱形图，显示不同物种（Species）的萼片宽度（Sepal.Width）分布，且不同物种的箱形用不同颜色表示，并且这些颜色半透明。</p>
+<p>这种类型的图表通常用于展示和比较不同类别或组的数据分布情况，特别是中位数、四分位数等统计信息。</p>
+</section>
+<section id="绘制散点图" class="level2">
+<h2 class="anchored" data-anchor-id="绘制散点图">绘制散点图</h2>
+<pre><code>ggplot(data,aes(x = Species,y = Sepal.Width)) +
+    geom_jitter(aes(color = Species))</code></pre>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/108091e9-3472-4a0c-b354-b076f58f08b4.png" class="img-fluid"></p>
+<p>利用ggplot2包创建散点图，并通过<code>geom_jitter</code>功能添加一些随机噪声来分散点，以便更清晰地展示数据。</p>
+</section>
+<section id="绘制箱线图散点图" class="level2">
+<h2 class="anchored" data-anchor-id="绘制箱线图散点图">绘制箱线图+散点图</h2>
+<pre><code>p &lt;- ggplot(data,aes(x = Species,y = Sepal.Width)) +
+    geom_boxplot(aes(fill = Species),alpha = 0.7)+
+    geom_jitter(aes(color = Species))+
+    scale_fill_manual(values = c("#f79f1f","#a3cb38","#1289a7"))+
+    scale_color_manual(values = c("#f79f1f","#a3cb38","#1289a7"))+
+    theme_bw()+
+    theme(panel.grid = element_blank())
+p</code></pre>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/8d299c77-3933-4d84-91ab-38075b2a0da7.png" class="img-fluid"></p>
+</section>
+<section id="单因素多水平比较" class="level2">
+<h2 class="anchored" data-anchor-id="单因素多水平比较">单因素多水平比较</h2>
+<p>对于两组以上的独立样品，如果数据同时满足正态性和方差齐性，可以采用方差分析（ANOVA）或者Kruskal检验，如果不满足可采用Kruskal检验。</p>
+<pre><code>p &lt;- p + stat_compare_means(
+    method = "kruskal.test",
+    label = "p.format",
+    label.x = 2,
+    label.y = 4,
+    show.legend = F
+)
+p</code></pre>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/80a096fa-9b92-43b9-81be-d85786b5a59f.png" class="img-fluid"></p>
+<p>可以看到上图中自动标注的显著性P值，通过修改label参数可以转换展示方式，默认显示检验方法和p值。</p>
+<p>p.format只显示p值不显示检验方法，p.signif显示显著性水平符号，<code>ns</code>: p &gt; 0.05、<code>*</code>: p &lt;= 0.05、<code>**</code>: p &lt;= 0.01、<code>***</code>: p &lt;= 0.001、<code>****</code>: p &lt;= 0.0001。</p>
+<ul>
+<li>method：选择统计学检验的方法</li>
+</ul>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/b209f24c-af80-449c-82ae-f7b1b1b1dea9.png" class="img-fluid"></p>
+</section>
+<section id="单因素两两比较" class="level2">
+<h2 class="anchored" data-anchor-id="单因素两两比较">单因素两两比较</h2>
+<p>如果想看两两之间的差异显著性，例如“setosa”和“versicolor”，可以通过wilcox.test方法进行检验。</p>
+<pre><code># 首先设置比较的列表
+compare_list &lt;- list(
+    c("setosa","versicolor"),
+    c("versicolor","virginica")
+p &lt;- ggplot(data,aes(x = Species,y = Sepal.Width)) +
+    geom_boxplot(aes(fill = Species),alpha = 0.7)+
+    geom_jitter(aes(color = Species))+
+    scale_fill_manual(values = c("#f79f1f","#a3cb38","#1289a7"))+
+    scale_color_manual(values = c("#f79f1f","#a3cb38","#1289a7"))+
+    theme_bw()+
+    theme(panel.grid = element_blank())+
+    stat_compare_means(
+    comparisons = compare_list,
+    method = "wilcox.test",
+    label = "p.signif")
+)</code></pre>
+<p>代码中stat_compare_means函数提供统计学检验，调节参数可以转换方法和展示方式。 <img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/84dc0f42-0de0-4da5-bfba-cec2861e1617.png" class="img-fluid"></p>
+</section>
+<section id="双因素组内比较" class="level2">
+<h2 class="anchored" data-anchor-id="双因素组内比较">双因素组内比较</h2>
+<p>如果引入分组信息作为另外一个因素，那么可以对每个水平内两组进行比较。</p>
+<pre><code>p &lt;- ggplot(data,aes(x = Species,y = Sepal.Length,color = Group))+
+    geom_boxplot(aes(fill=Group),alpha=0.5)
+p</code></pre>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/3c5a7b79-ec4b-42cd-81d7-762902a9df42.png" class="img-fluid"></p>
+<section id="箱线-散点" class="level3">
+<h3 class="anchored" data-anchor-id="箱线-散点">箱线 + 散点</h3>
+<pre><code>p &lt;- ggplot(data,aes(x = Species,y = Sepal.Length,color = Group))+
+    geom_boxplot(aes(fill=Group),alpha=0.5)+
+    geom_jitter(position = position_jitterdodge(jitter.width = 0.5,
+                                                jitter.height = 0.5,
+                                                dodge.width = 0.2))+
+    scale_fill_manual(values = c("#f79f1f","#a3cb38","#1289a7"))+
+    scale_color_manual(values = c("#f79f1f","#a3cb38","#1289a7"))+
+    theme_bw()
+p</code></pre>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/79720a55-f23f-477b-8b59-1a5ab6901a3f.png" class="img-fluid"></p>
+<p>position_jitterdodge函数可以调整散点图的抖动范围，scale_fill_manual用于调整填充颜色，theme_bw用于设置主题，这段代码仅作图。</p>
+</section>
+<section id="统计学检验" class="level3">
+<h3 class="anchored" data-anchor-id="统计学检验">统计学检验</h3>
+<pre><code>p &lt;- p + stat_compare_means(
+    aes(group = Group),
+    label = "p.format",
+    show.legend = F,
+    label.y = 8.5
+)
+p</code></pre>
+<p><img src="https://jewin.oss-cn-hangzhou.aliyuncs.com/230862f0-f8dc-404b-8830-a12426efd61e.png" class="img-fluid"></p>
+<p>这张图x轴是不同分类，每个分类下有A和B两组，y轴表示具体的值，每个分类上有P值标注。</p>
+<blockquote class="blockquote">
+<p>在实际的分析可视化过程中，还要考虑实验设计、数据分布状态等因素，合理选择检验方法，并根据目的和需求修改相应参数。</p>
+</blockquote>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
